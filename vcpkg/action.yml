@@ -1,6 +1,6 @@
 name: 'vcpkg environment'
 description: 'Activate vcpkg environment'
-author: 'Jonatan Antoni <jonatan.antoni@arm.com'
+author: 'Jonatan Antoni <jonatan.antoni@arm.com>'
 
 inputs:
   config:
@@ -9,7 +9,7 @@ inputs:
     default: "./vcpkg-configuration.json"
   vcpkg-downloads:
     description: "Downloads folder for vcpkg"
-    default: "${{ github.workspace }}/.vcpkg/downloads"
+    default: $VCPKG_INSTALLATION_ROOT
     required: false
   cache:
     description: "Cache key suffix, set to empty to disable cache."
@@ -28,10 +28,23 @@ runs:
           vcpkg-${{ runner.os }}-${{ runner.arch }}-
         path: ${{ inputs.vcpkg-downloads }}
 
+    - name: Check if cache restored
+      if: ${{ inputs.cache }}
+      shell: bash
+      run: |
+        VCPKG_PATH=$(echo "${{ inputs.vcpkg-downloads }}" | sed 's|\\|/|g; s|^\([A-Za-z]\):|/\L\1|')
+        if [ -z "$(ls -A $VCPKG_ROOT_PATH)" ]; then
+          echo "No cache restored..."
+          echo "VCPKG_ROOT=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+        else
+          echo "Cache restored..."
+          echo "VCPKG_ROOT=$VCPKG_PATH" >> $GITHUB_ENV
+        fi
+
     - name: Create/update all vcpkg registries
       shell: bash
       run: |
-        vcpkg x-update-registry --all
+        vcpkg x-update-registry --all --vcpkg-root=$VCPKG_ROOT
         
     - name: Activate vcpkg environment
       shell: bash
@@ -41,7 +54,7 @@ runs:
         if [[ "${config}" != "vcpkg-configuration.json" ]]; then
           cp "${config}" vcpkg-configuration.json
         fi
-        vcpkg activate --downloads-root="${{ inputs.vcpkg-downloads }}" --json=env.json
+        vcpkg activate --downloads-root="${{ inputs.vcpkg-downloads }}" --json=env.json --vcpkg-root=$VCPKG_ROOT
         echo "Preserving vcpkg PATH ..."
         jq '.paths.PATH[]' env.json | tr -d '\"' | tee -a $GITHUB_PATH
         echo "Preserving vcpkg ENV ..."
