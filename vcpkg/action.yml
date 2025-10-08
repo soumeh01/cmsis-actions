@@ -33,7 +33,8 @@ runs:
     #   if: ${{ inputs.cache }}
     #   with:
     #     key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}${{ inputs.cache }}
-    #     restore-keys: vcpkg-${{ runner.os }}-${{ runner.arch }}-
+    #     restore-keys: |
+    #       vcpkg-${{ runner.os }}-${{ runner.arch }}-
     #     path: ${{ inputs.vcpkg-downloads }}
 
     - name: Create/update all vcpkg registries
