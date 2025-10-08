@@ -24,9 +24,10 @@ runs:
       uses: Open-CMSIS-Pack/workflows-and-actions-collection/cache@cache-cleanup
       with:
         key: vcpkg-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/vcpkg-configuration.json' ) }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-${{ runner.arch }}-
         path: ${{ inputs.vcpkg-downloads }}
-        lookup-only: "true"     # Only checks if cache exists
-        dry-run-cleanup: "true" # Shows cleanup analysis
+
 
     # - name: Cache vcpkg
     #   uses: actions/cache@v4
